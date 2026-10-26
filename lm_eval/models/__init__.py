@@ -56,6 +56,7 @@ MODEL_MAPPING = {
     "steered": "lm_eval.models.hf_steered:SteeredModel",
     "textsynth": "lm_eval.models.textsynth:TextSynthLM",
     "trtllm": "lm_eval.models.trtllm_causallms:TRTLLM",
+    "vitni": "lm_eval.models.vitni:VitniLM",
     "vllm": "lm_eval.models.vllm_causallms:VLLM",
     "vllm-vlm": "lm_eval.models.vllm_vlms:VLLM_VLM",
     "watsonx_llm": "lm_eval.models.ibm_watsonx_ai:WatsonxLLM",

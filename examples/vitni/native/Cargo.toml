@@ -1,0 +1,16 @@
+[package]
+name = "vitni-lm-eval"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+vitni-tensor = { git = "https://github.com/vitnify/vitni-tensor", rev = "b4d7e6456bef8b7f34c554ca993a41bebe17e317" }
+vitni-tensor-metal = { git = "https://github.com/vitnify/vitni-tensor", rev = "b4d7e6456bef8b7f34c554ca993a41bebe17e317", optional = true }
+serde_json = "1"
+blake3 = "1"
+libm = "=0.2.16"
+
+[features]
+metal = ["dep:vitni-tensor-metal"]

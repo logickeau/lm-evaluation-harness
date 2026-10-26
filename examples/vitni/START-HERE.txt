@@ -1,0 +1,78 @@
+Vitni deterministic reference backend for lm-evaluation-harness
+==============================================================
+This experimental adapter executes actual Llama GGUF inference through the
+unchanged Vitni engine at b4d7e6456bef8b7f34c554ca993a41bebe17e317.
+It supports loglikelihood and rolling loglikelihood; generation is unsupported.
+llama.cpp reads the GGUF vocabulary and tokenizes only. In Vitni runs, it never
+evaluates the model. CPU/Metal numerical equality comes from Vitni forwards.
+
+Adoption use: a portable reference for evaluation/regression checks, so hardware
+changes do not obscure whether a checkpoint or evaluation implementation changed.
+This is a separate numerical profile; it does not reproduce arbitrary HF or
+llama.cpp floating-point intermediates. It is not a replacement for all optimized
+serving or benchmark backends. See DESIGN.txt for the exact hypothesis and scope.
+
+Environment
+- Python 3.12, Rust/Cargo, standard harness dependencies.
+- Apple Silicon macOS and Metal for the four-way local proof.
+- CPU-only Rust build is available without --features metal; other physical
+  architectures remain an external replication task, not a validated claim.
+- Real TinyLlama 1.1B Chat v1.0 Q4_K_M weights, distributed by TheBloke on HF:
+  https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF
+  File tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
+  SHA256 9fecc3b3cd76bba89d504f29b616eedf7da85b96540e490ca5824d3f7d2776a0
+  The model is NOT included in the source/evidence packet.
+
+From this checkout root, with a Python environment active:
+  CMAKE_ARGS='-DGGML_METAL=ON' pip install -e '.[vitni]' pytest
+  cargo build --locked --release --features metal --manifest-path examples/vitni/native/Cargo.toml
+
+For the exact measured Python versions, install examples/vitni/requirements-lock.txt.
+Use Cargo.lock to pin the Rust dependency graph. See results/source-manifest.json
+for compiler/build/hardware identities. The prototype CPU path is single-threaded;
+the baseline uses 8 CPU threads. These are measured configurations, not a lower
+bound on the cost of deterministic arithmetic or a matched-core speed benchmark.
+
+Run real inference tests (absolute paths required):
+  VITNI_MODEL=/absolute/path/to/model.gguf VITNI_BINARY=/absolute/path/to/examples/vitni/native/target/release/vitni-lm-eval pytest tests/models/test_vitni.py -q
+
+Standard harness entry point:
+  lm_eval --model vitni --model_args pretrained=/absolute/path/to/model.gguf,binary=/absolute/path/to/vitni-lm-eval,backend=metal,max_length=512,model_sha256=9fecc3b3cd76bba89d504f29b616eedf7da85b96540e490ca5824d3f7d2776a0 --batch_size 1 --tasks winogrande --limit 32 --num_fewshot 0
+
+The entry point above illustrates ordinary harness use; for a controlled rerun,
+use the proof driver below, which pins the dataset revision and sample IDs.
+
+Four-way proof driver (repeat with distinct fresh output directories):
+  python examples/vitni/run_comparison.py --engine vitni --backend cpu --model /absolute/path/to/model.gguf --binary examples/vitni/native/target/release/vitni-lm-eval --output examples/vitni/results/vitni-cpu
+  python examples/vitni/run_comparison.py --engine vitni --backend metal --model /absolute/path/to/model.gguf --binary examples/vitni/native/target/release/vitni-lm-eval --output examples/vitni/results/vitni-metal
+  python examples/vitni/run_comparison.py --engine llama --backend cpu --model /absolute/path/to/model.gguf --binary examples/vitni/native/target/release/vitni-lm-eval --output examples/vitni/results/llama-cpu
+  python examples/vitni/run_comparison.py --engine llama --backend metal --model /absolute/path/to/model.gguf --binary examples/vitni/native/target/release/vitni-lm-eval --output examples/vitni/results/llama-metal
+  python examples/vitni/analyze.py
+
+Fresh-process, reverse-order replay of the two critical benchmark documents:
+  python examples/vitni/replay.py --engine vitni --backend cpu --model /absolute/path/to/model.gguf --binary examples/vitni/native/target/release/vitni-lm-eval --output replay-cpu.json
+Use --backend metal for GPU replay. --engine llama repeats the ordinary baseline.
+The recorded request IDs supply inputs only; all outputs are freshly recomputed
+from the model weights before comparing their fingerprints with the recorded run.
+
+Each run preserves actual model requests, exact IDs, full-vocabulary per-position
+BLAKE3 fingerprints, per-target likelihood bits, greedy argmax, forward counts,
+request runtimes, task inputs and full harness sample/metric outputs.
+No answer cache or prefix reuse is enabled. Each request gets a fresh KV state.
+Normalizer arithmetic is shared between both engines to isolate forward drift.
+The analyzer checks that native scores actually produced the reported metrics.
+
+Dataset pin bootstrap: results/dataset-info.json must contain
+{"id":"allenai/winogrande","sha":"01e74176c63542e6b0bcb004dcdea22d94fb67b5"}.
+The evidence packet includes this file. For offline replication, first cache
+load_dataset('allenai/winogrande','winogrande_xl',revision=that_sha), then set
+HF_HUB_OFFLINE=1. The selected documents are validation IDs 0 through 31.
+
+Practical boundaries
+- Unsupported model architecture, Metal dtype, token ID, context overflow,
+  model digest mismatch and automatic batching fail explicitly.
+- No silent context truncation; change max_length explicitly within model limits.
+- The evidence covers one pretrained 1.1B model and CPU/Metal on one Mac.
+- This does not validate H100/A100, CUDA, independent machines, a full benchmark,
+  model quality improvement, remote attestation or cryptographic proof of execution.
+- Upstream has not accepted this backend and no public invitation was posted.

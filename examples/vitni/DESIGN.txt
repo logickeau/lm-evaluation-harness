@@ -1,0 +1,53 @@
+Hypothesis, fixed before the four task runs
+==========================================
+Adoption target: EleutherAI/lm-evaluation-harness, pinned to
+d6de81643928d653435c431bae19945d41d32520.
+Public issue 1729 and related issues 1645/1625 document numerical reproducibility
+problems. They establish a use case, not a request for this integration or proof
+that Vitni solves every cause of the original reports.
+
+Offer: an optional deterministic reference backend for likelihood evaluation and
+cross-backend regression tests. The backend executes actual Vitni model forwards;
+metadata/signatures/logs alone cannot make its logits identical across devices.
+
+Controlled comparison
+- TinyLlama 1.1B Chat v1.0 Q4_K_M, exact same GGUF file for all four runs.
+  SHA256 9fecc3b3cd76bba89d504f29b616eedf7da85b96540e490ca5824d3f7d2776a0
+- First 32 Winogrande validation documents, chosen before measuring outcomes.
+  Standard harness task and official preprocessing/metric; zero-shot, no chat.
+  This is a bounded integration trial, not a full benchmark or quality estimate.
+- Dataset revision 01e74176c63542e6b0bcb004dcdea22d94fb67b5, task version 1.0.
+- Four separate processes: Vitni CPU/Metal; llama.cpp CPU/Metal via
+  llama-cpp-python 0.3.36 (current PyPI release checked 2026-10-26 UTC).
+  One physical Apple M3 Max Mac. Version 0.3.16 was used only for initial
+  installation and GPU capability smoke checks; it is not the measured baseline.
+- Same tokenizer, exact context and continuation IDs, max context 512.
+  Batch one, no prefix/result cache, fresh KV state for every request.
+- Every input token before the final target is actually evaluated. No teacher
+  answer is substituted for logits. All vocabulary logits at every position are
+  fingerprinted, not only a sampled token or the final aggregate accuracy.
+- Both engines use exactly one pinned libm f64 ordered logsumexp routine.
+  Logits are f32; accumulations and reported likelihoods are f64.
+- Runs execute sequentially. Report model loading separately from evaluation.
+
+Success criteria
+1. Real harness completes all 32 examples under all four backends.
+2. Token IDs and forward counts match between each corresponding request.
+3. Vitni CPU/Metal full logit hashes and likelihood bits match for every request.
+4. Baseline CPU/Metal differences are measured without injecting perturbations.
+5. Report task decisions, argmax changes, runtimes and numerical disagreement
+   between the canonical engine and ordinary inference; do not call lower or
+   equal task accuracy a quality improvement.
+6. Fresh-process/order replay and negative controls check that equality is not
+   response caching or silently skipped inference.
+
+Scope and limitations
+Only supported Llama GGUF dtypes, likelihood and rolling likelihood tasks.
+Generation intentionally raises NotImplementedError. Unsupported Metal dtypes,
+invalid tokens, overflow and model digest mismatches fail explicitly.
+Numerics profile is engine commit + locked Rust dependency/compiler build;
+cross-device equality is a tested result for this profile, not a universal theorem.
+Pinning tasks, tokenizer, model, examples and scoring remains necessary.
+CPU and Metal on one Mac do not validate independent machines, x86, CUDA,
+H100/A100, full precision HF checkpoints, other architectures or every task.
+Upstream interest, merge acceptance and user adoption remain unmeasured.
