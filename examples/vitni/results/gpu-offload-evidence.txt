@@ -1,0 +1,3 @@
+Selected unmodified lines from the ordinary Metal baseline log:
+load_tensors: offloaded 23/23 layers to GPU
+load_tensors:  MTL0_Mapped model buffer size =   636.18 MiB

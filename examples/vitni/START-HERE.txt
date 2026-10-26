@@ -12,6 +12,18 @@ This is a separate numerical profile; it does not reproduce arbitrary HF or
 llama.cpp floating-point intermediates. It is not a replacement for all optimized
 serving or benchmark backends. See DESIGN.txt for the exact hypothesis and scope.
 
+Quick replay (Python 3.12, Rust/Cargo and C/C++ build tools required)
+  python3.12 examples/vitni/try_vitni.py
+
+This creates an isolated environment, downloads the pinned ~638 MiB GGUF, builds
+Vitni, and recomputes four continuations from the two critical Winogrande examples.
+On Apple Silicon it runs CPU and Metal and checks both against recorded output
+fingerprints. It takes several minutes including dependency/native compilation.
+It does not execute the full 32-example task; the commands below do that.
+To reuse existing exact weights, add --model /absolute/path/to/model.gguf.
+On other systems it defaults to CPU-only external replication, which is unvalidated
+by the original one-Mac study. Generation is not implemented in this adapter.
+
 Environment
 - Python 3.12, Rust/Cargo, standard harness dependencies.
 - Apple Silicon macOS and Metal for the four-way local proof.
@@ -75,4 +87,4 @@ Practical boundaries
 - The evidence covers one pretrained 1.1B model and CPU/Metal on one Mac.
 - This does not validate H100/A100, CUDA, independent machines, a full benchmark,
   model quality improvement, remote attestation or cryptographic proof of execution.
-- Upstream has not accepted this backend and no public invitation was posted.
+- Upstream has not accepted this backend; independent adoption is unconfirmed.

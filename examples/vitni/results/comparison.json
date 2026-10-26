@@ -1,0 +1,260 @@
+{
+  "comparisons": {
+    "vitni_cpu_vs_metal": {
+      "requests": 64,
+      "logit_trace_mismatches": 0,
+      "logit_row_mismatches": 0,
+      "likelihood_bit_mismatches": 0,
+      "target_logprob_bit_mismatches": 0,
+      "target_argmax_mismatches": 0,
+      "max_abs_request_likelihood_delta": 0.0,
+      "changed_decisions": []
+    },
+    "llama_cpu_vs_metal": {
+      "requests": 64,
+      "logit_trace_mismatches": 64,
+      "logit_row_mismatches": 1652,
+      "likelihood_bit_mismatches": 64,
+      "target_logprob_bit_mismatches": 388,
+      "target_argmax_mismatches": 21,
+      "max_abs_request_likelihood_delta": 0.4499726659798249,
+      "changed_decisions": [
+        {
+          "id": 18,
+          "document": {
+            "sentence": "Leslie was nervous around parrots but Neil was not, since _ was bitten by a bird early in life.",
+            "option1": "Leslie",
+            "option2": "Neil",
+            "answer": "1"
+          },
+          "a_scores": [
+            [
+              [
+                -23.357194793256962,
+                false
+              ]
+            ],
+            [
+              [
+                -23.2728699320557,
+                false
+              ]
+            ]
+          ],
+          "b_scores": [
+            [
+              [
+                -23.18501489275078,
+                false
+              ]
+            ],
+            [
+              [
+                -23.30974283001416,
+                false
+              ]
+            ]
+          ]
+        },
+        {
+          "id": 31,
+          "document": {
+            "sentence": "Mary thought poodles were a cool dog but Rachel thought Great Danes were cooler. _ bought a small dog bed for their pet.",
+            "option1": "Mary",
+            "option2": "Rachel",
+            "answer": "1"
+          },
+          "a_scores": [
+            [
+              [
+                -75.12949383511537,
+                false
+              ]
+            ],
+            [
+              [
+                -75.11475934533188,
+                false
+              ]
+            ]
+          ],
+          "b_scores": [
+            [
+              [
+                -74.93050512030045,
+                false
+              ]
+            ],
+            [
+              [
+                -75.4277370930067,
+                false
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "vitni_vs_llama_cpu": {
+      "requests": 64,
+      "logit_trace_mismatches": 64,
+      "logit_row_mismatches": 1652,
+      "likelihood_bit_mismatches": 64,
+      "target_logprob_bit_mismatches": 388,
+      "target_argmax_mismatches": 21,
+      "max_abs_request_likelihood_delta": 0.5266738820673673,
+      "changed_decisions": [
+        {
+          "id": 18,
+          "document": {
+            "sentence": "Leslie was nervous around parrots but Neil was not, since _ was bitten by a bird early in life.",
+            "option1": "Leslie",
+            "option2": "Neil",
+            "answer": "1"
+          },
+          "a_scores": [
+            [
+              [
+                -23.086513226129036,
+                false
+              ]
+            ],
+            [
+              [
+                -23.346596990899144,
+                false
+              ]
+            ]
+          ],
+          "b_scores": [
+            [
+              [
+                -23.357194793256962,
+                false
+              ]
+            ],
+            [
+              [
+                -23.2728699320557,
+                false
+              ]
+            ]
+          ]
+        },
+        {
+          "id": 31,
+          "document": {
+            "sentence": "Mary thought poodles were a cool dog but Rachel thought Great Danes were cooler. _ bought a small dog bed for their pet.",
+            "option1": "Mary",
+            "option2": "Rachel",
+            "answer": "1"
+          },
+          "a_scores": [
+            [
+              [
+                -74.8191095429375,
+                false
+              ]
+            ],
+            [
+              [
+                -75.29137728746615,
+                false
+              ]
+            ]
+          ],
+          "b_scores": [
+            [
+              [
+                -75.12949383511537,
+                false
+              ]
+            ],
+            [
+              [
+                -75.11475934533188,
+                false
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "vitni_vs_llama_metal": {
+      "requests": 64,
+      "logit_trace_mismatches": 64,
+      "logit_row_mismatches": 1652,
+      "likelihood_bit_mismatches": 64,
+      "target_logprob_bit_mismatches": 388,
+      "target_argmax_mismatches": 8,
+      "max_abs_request_likelihood_delta": 0.32670089410672887,
+      "changed_decisions": []
+    }
+  },
+  "performance": {
+    "vitni-cpu": {
+      "forward_steps": 1652,
+      "engine_seconds": 410.814223127,
+      "evaluation_seconds": 418.8988559580175,
+      "load_wall_seconds": 0.9143667500466108,
+      "results": {
+        "winogrande": {
+          "name": "winogrande",
+          "alias": "winogrande",
+          "sample_len": 32,
+          "acc,none": 0.65625,
+          "acc_stderr,none": "N/A"
+        }
+      }
+    },
+    "vitni-metal": {
+      "forward_steps": 1652,
+      "engine_seconds": 79.240721454,
+      "evaluation_seconds": 89.30364858300891,
+      "load_wall_seconds": 1.2885229169623926,
+      "results": {
+        "winogrande": {
+          "name": "winogrande",
+          "alias": "winogrande",
+          "sample_len": 32,
+          "acc,none": 0.65625,
+          "acc_stderr,none": "N/A"
+        }
+      }
+    },
+    "llama-cpu": {
+      "forward_steps": 1652,
+      "engine_seconds": 15.98784400394652,
+      "evaluation_seconds": 24.952776624937542,
+      "load_wall_seconds": 4.032825917005539,
+      "results": {
+        "winogrande": {
+          "name": "winogrande",
+          "alias": "winogrande",
+          "sample_len": 32,
+          "acc,none": 0.59375,
+          "acc_stderr,none": "N/A"
+        }
+      }
+    },
+    "llama-metal": {
+      "forward_steps": 1652,
+      "engine_seconds": 8.643233536742628,
+      "evaluation_seconds": 16.196736708050594,
+      "load_wall_seconds": 0.639991124975495,
+      "results": {
+        "winogrande": {
+          "name": "winogrande",
+          "alias": "winogrande",
+          "sample_len": 32,
+          "acc,none": 0.65625,
+          "acc_stderr,none": "N/A"
+        }
+      }
+    }
+  },
+  "prototype_engine_time_ratios": {
+    "cpu": 25.695411027627774,
+    "metal": 9.167948675359224
+  }
+}

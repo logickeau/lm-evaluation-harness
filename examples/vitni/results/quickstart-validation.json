@@ -1,0 +1,14 @@
+{
+  "tested_at_utc": "2026-10-26T03:00:22.148056+00:00",
+  "environment": "fresh isolated Python 3.12 environment",
+  "hardware": "Apple M3 Max",
+  "backends": [
+    "cpu",
+    "metal"
+  ],
+  "requests_per_backend": 4,
+  "all_recorded_fingerprints_matched": true,
+  "weights": "existing SHA256-verified GGUF reused; pinned public download URL separately checked with first 1024 bytes",
+  "rust_build": "locked release build with Metal feature",
+  "quickstart_sha256": "e8b863fdba457001e7e6fc97fce8b1eca8dc97e9b9ecdc6f581e8f1ddb70bd8b"
+}

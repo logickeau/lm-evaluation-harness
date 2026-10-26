@@ -1,0 +1,139 @@
+Vitni adoption proof: deterministic reference evaluation
+======================================================
+Result
+------
+A working optional Vitni backend now executes real TinyLlama inference inside
+EleutherAI/lm-evaluation-harness. In a fixed 32-example Winogrande trial, ordinary
+llama.cpp changed two answer choices between CPU and Metal; Vitni reproduced all
+64 continuation likelihoods and all full-vocabulary logit fingerprints exactly.
+
+The concrete value is a stable numerical reference for evaluation and regression
+checks when compute hardware changes. Logs can expose drift; the engine supplies
+an execution profile that avoided it in this test. This is an experimentally
+demonstrated local capability, not evidence of upstream adoption or unique novelty.
+
+Why this is a credible larger-project target
+------------------------------------------
+EleutherAI/lm-evaluation-harness had 14,314 GitHub stars at inspection. It already
+supports optional model backends and GGUF evaluation. The new adapter uses those
+interfaces, not a standalone demonstration merely named after the project.
+
+Issue 1729 reports score changes after H100-to-A100 migration. Contributors
+discuss hardware, batch size and precision as possible causes and the difficulty
+of bitwise reproducibility. Issues 1645 and 1625 also document batch-related
+likelihood/score changes. Those historical reports have confounding factors; this
+experiment does not reproduce or resolve their exact H100/A100 workloads.
+https://github.com/EleutherAI/lm-evaluation-harness/issues/1729
+https://github.com/EleutherAI/lm-evaluation-harness/issues/1645
+https://github.com/EleutherAI/lm-evaluation-harness/issues/1625
+
+Implemented
+-----------
+- Registered --model vitni backend; actual loglikelihood and rolling likelihood.
+- Resident Rust process calls the unchanged pinned Vitni CPU or Metal forward.
+- Shared GGUF tokenizer; llama.cpp never performs inference in a Vitni run.
+- Fresh KV state for each request. No answer cache, reference-answer substitution,
+  implicit truncation or prefix-result reuse.
+- Explicit model digest, input token, context-length and Metal-dtype guards.
+- Per-position full-vocabulary BLAKE3 fingerprints, exact f64 likelihood bits,
+  per-target argmax, forward counts and runtime evidence.
+- Current llama.cpp comparator, controlled task driver, independent analyzer,
+  real-inference tests and fresh-process reverse-order replay tool.
+
+Measured results
+----------------
+Apple M3 Max, one Mac; same trained TinyLlama 1.1B Chat Q4_K_M GGUF, tokenizer,
+input IDs, max context 512, batch 1, no chat template, zero-shot evaluation.
+Official Winogrande task version 1.0, validation IDs 0..31 chosen before outcomes.
+Every run evaluated 64 continuations and executed 1,652 actual forward steps.
+Each step contains 32,000 logits: 52,864,000 f32 outputs fingerprinted per run.
+
+Backend           Correct / 32   Engine time   Harness evaluation time
+llama.cpp CPU          19           15.99 s          24.95 s
+llama.cpp Metal        21            8.64 s          16.20 s
+Vitni CPU              21          410.81 s         418.90 s
+Vitni Metal            21           79.24 s          89.30 s
+
+These are one-pass diagnostic measurements, with model loading reported
+separately in the evidence. The prototype CPU path uses one thread; the ordinary
+CPU baseline uses eight. CPU timing is not a matched-core speed comparison.
+The measured Metal prototype took 9.17x the ordinary Metal engine time.
+Timings include fingerprints/scoring in both engines; baseline also includes a
+temporary raw-logit file and normalizer RPC. They are prototype end-to-end costs,
+not a lower bound on the cost of deterministic computation.
+
+Vitni CPU vs Metal:
+- 0/64 request likelihood bit mismatches.
+- 0/1,652 full-vocabulary logit-row fingerprint mismatches.
+- 0/388 target likelihood bit mismatches; 0 target argmax mismatches.
+- 0 task answer-choice changes; identical 21/32 result.
+
+Ordinary llama.cpp CPU vs Metal:
+- 64/64 request likelihood bit mismatches.
+- 1,652/1,652 full-vocabulary row fingerprint mismatches.
+- 388/388 target likelihood bit mismatches; 21 target argmax changes.
+- 2 task answer-choice changes: validation documents 18 and 31.
+- Maximum absolute request likelihood difference: 0.4499726659798249.
+
+Example, validation document 18:
+"Leslie was nervous around parrots but Neil was not, since _ was bitten by a
+bird early in life."
+Choice likelihoods, Leslie / Neil:
+  llama.cpp CPU:   -23.357194793256962 / -23.2728699320557   -> Neil
+  llama.cpp Metal: -23.18501489275078  / -23.30974283001416  -> Leslie
+  Vitni CPU:       -23.086513226129036 / -23.346596990899144 -> Leslie
+  Vitni Metal:     -23.086513226129036 / -23.346596990899144 -> Leslie
+The gold answer is Leslie. This illustrates a hardware-dependent benchmark
+decision; it does not establish a model-quality improvement from Vitni.
+
+Both engines use the exact same pinned libm f64 ordered logsumexp implementation.
+Observed likelihood differences therefore originate in forward outputs, not a
+different Python/GPU normalization or metric calculation. Token IDs, request
+lengths and actual forward counts were checked pairwise. The analyzer independently
+checks that native likelihoods really produced the reported harness decisions.
+The ordinary Metal log confirms 23/23 model layers offloaded to the GPU.
+
+Verification: 75 Python tests passed (real Vitni CPU/Metal, adjacent GGUF and
+registry tests), plus the Rust normalization test. All four backends also matched
+their own recorded outputs when the four critical likelihood requests were
+recomputed in fresh processes in reverse order. The ordinary device-dependent
+answer choices therefore survived independent replay within each backend.
+The standard model registry/argument factory executed an additional real forward.
+Ruff, Rust formatting and patch whitespace checks passed.
+
+Limits and adoption decision
+---------------------------
+Vitni establishes its own numerical profile. Its likelihoods differ from ordinary
+llama.cpp on both devices. Matching across Vitni backends does not make it an
+exact replacement for existing HF/llama.cpp scores or prove greater accuracy.
+The 32-document subset is not a leaderboard evaluation or statistical quality
+comparison. Dataset, tokenizer, task/prompt versions and scoring still need pins.
+
+Physical CPU/Metal compute units on one Mac were tested. Independent machines,
+physical x86, CUDA, H100/A100, other model families and larger models remain
+unvalidated by this integration. The prototype supports likelihood tasks for
+supported Llama GGUFs; generation deliberately fails as unsupported.
+
+This is worth offering as an optional reference/regression backend, with its cost
+and model scope made explicit. A small stable regression suite is a plausible
+initial adoption workload. Broad evaluation-backend replacement is not established.
+The next decisive checks are independent hardware replication and whether harness
+maintainers actually want this reference mode. No upstream interest is claimed.
+
+Reproduction and source identities
+----------------------------------
+See START-HERE.txt and try_vitni.py in this directory. The trial branch contains
+actual source plus all four raw benchmark runs under results/; analyze.py audits
+stored results, while replay.py and try_vitni.py recompute from the real weights.
+
+Harness base: d6de81643928d653435c431bae19945d41d32520
+Initial tested adapter: 2028366c693249fa3f754bc4dad832900eaa21ad
+Vitni core/Metal: b4d7e6456bef8b7f34c554ca993a41bebe17e317
+llama-cpp-python: 0.3.36, vendored llama.cpp
+  0c1e57098bba43ac29e6e3b677cdceebdd22334f
+Model SHA256: 9fecc3b3cd76bba89d504f29b616eedf7da85b96540e490ca5824d3f7d2776a0
+Dataset revision: 01e74176c63542e6b0bcb004dcdea22d94fb67b5
+
+Published on a separate experimental fork branch for review. Upstream has not
+accepted this backend. No main branch was changed. These local results are not
+counted as independent adoption.

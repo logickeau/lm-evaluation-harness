@@ -1,0 +1,28 @@
+{
+  "harness_commit": "d6de81643928d653435c431bae19945d41d32520",
+  "branch": "research/vitni-deterministic-eval-2026-10-25",
+  "engine_commit": "b4d7e6456bef8b7f34c554ca993a41bebe17e317",
+  "llama_cpp_python_version": "0.3.36",
+  "llama_cpp_python_tag_commit": "1652066e0af45f2313b339670ef9555e8a54e545",
+  "llama_cpp_vendor_commit": "0c1e57098bba43ac29e6e3b677cdceebdd22334f",
+  "python": "3.12.11 (main, Jun  3 2025, 15:41:47) [Clang 17.0.0 (clang-1700.0.13.3)]",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "cpu": "Apple M3 Max",
+  "rustc": "rustc 1.95.0-nightly (873b4beb0 2026-02-15)\nbinary: rustc\ncommit-hash: 873b4beb0cc726493b94c8ef21f68795c04fbbc1\ncommit-date: 2026-02-15\nhost: aarch64-apple-darwin\nrelease: 1.95.0-nightly\nLLVM version: 22.1.0\n",
+  "cargo": "cargo 1.95.0-nightly (ce69df6f7 2026-02-12)",
+  "llama_cpp_cmake_args": "-DGGML_METAL=ON",
+  "vitni_build_features": [
+    "metal"
+  ],
+  "vitni_cpu_threads": 1,
+  "llama_cpp_cpu_threads": 8,
+  "dataset": {
+    "id": "allenai/winogrande",
+    "sha": "01e74176c63542e6b0bcb004dcdea22d94fb67b5"
+  },
+  "task_yaml_sha256": "7a73c28f1c760f1f54b4185f21f8df5927c1fe7278a8520f38ee03cc7f40d9e7",
+  "task_preprocessing_sha256": "e55327629264a98f1d383fda24645b6779afb53fa0bce2150042b9416b1ae006",
+  "measured_native_binary_sha256": "81170f330270eda102d393800c21773a5284bd669692616d3f69062ad105b96e",
+  "packaged_source_build_native_binary_sha256": "e3433087485371841c9e851006153dd2b48978b17370bfd62bfbd420e204854c",
+  "native_source_change_after_measured_build": "Rustfmt formatting only; fresh-process critical-request replay validates rebuilt source against recorded fingerprints."
+}

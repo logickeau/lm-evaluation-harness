@@ -1,0 +1,35 @@
+{
+  "engine": "vitni",
+  "backend": "cpu",
+  "checks": [
+    {
+      "index": 63,
+      "trace_equal": true,
+      "score_bits_equal": true,
+      "forward_steps": 33,
+      "seconds": 8.300874541
+    },
+    {
+      "index": 62,
+      "trace_equal": true,
+      "score_bits_equal": true,
+      "forward_steps": 32,
+      "seconds": 8.416605125
+    },
+    {
+      "index": 37,
+      "trace_equal": true,
+      "score_bits_equal": true,
+      "forward_steps": 26,
+      "seconds": 6.5052801670000004
+    },
+    {
+      "index": 36,
+      "trace_equal": true,
+      "score_bits_equal": true,
+      "forward_steps": 27,
+      "seconds": 6.695290708
+    }
+  ],
+  "all_equal": true
+}
